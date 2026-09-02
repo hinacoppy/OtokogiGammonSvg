@@ -2,7 +2,7 @@
 // (参考) https://developer.mozilla.org/ja/docs/Web/Progressive_web_apps/Offline_Service_workers
 'use strict';
 
-const cacheName = 'OtokogiGammon-v20260212';
+const cacheName = 'OtokogiGammon-v20260901';
 const ORIGIN = (location.hostname == 'localhost') ? '' : location.protocol + '//' + location.hostname;
 
 const contentToCache = [
@@ -15,13 +15,13 @@ const contentToCache = [
   ORIGIN + '/OtokogiGammon/icon/android-chrome-192x192.png',
   ORIGIN + '/OtokogiGammon/icon/android-chrome-512x512.png',
   ORIGIN + '/OtokogiGammon/css/OtokogiGammon.css',
+  ORIGIN + '/OtokogiGammon/js/OgUtil_class.js',
   ORIGIN + '/OtokogiGammon/js/Ogid_class.js',
   ORIGIN + '/OtokogiGammon/js/OtokogiChequer_class.js',
   ORIGIN + '/OtokogiGammon/js/OtokogiBoard_class.js',
   ORIGIN + '/OtokogiGammon/js/OtokogiGame_class.js',
   ORIGIN + '/css/font-awesome-animation.min.css',
   ORIGIN + '/js/fontawesome-inuse.min.js',
-  ORIGIN + '/js/jquery-3.7.1.min.js',
 ];
 
 self.addEventListener('install', (e) => {

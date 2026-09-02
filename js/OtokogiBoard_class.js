@@ -80,18 +80,18 @@ class OtokogiBoard {
       const innersvg = (p == 0) ? `<rect x="0" y="50" width="50" height="150" stroke-width="2" stroke="#000" fill="#ddd"/>`
                                 : `<path d="M 0 200 L 25 50 L 50 200 Z" fill="${color}"/>`;
       ptsvg.innerHTML = innersvg;
-      this.point[p] = $('#pt' + p);
-      this.point[p].css(this.getPosObjBottom(this.pointX[p], this.pointY));
+      this.point[p] = ptsvg;
+      OgUtil.domSetPos(this.point[p], this.getPosObjBottom(this.pointX[p], this.pointY));
     }
-    this.pointAll = $(".point");
-    this.point[7].hide(); //7ポイントは最初は非表示
-    this.offtray = $('#pt0');
+    this.pointAll = document.querySelectorAll(".point");
+    OgUtil.domHide(this.point[7]); //7ポイントは最初は非表示
+    this.offtray = this.point[0];
 
     //dice
-    this.dice1 = $('#dice1');
-    this.dice2 = $('#dice2');
-    this.dice1.css(this.getPosObjTop(this.dice1X, this.diceY));
-    this.dice2.css(this.getPosObjTop(this.dice2X, this.diceY));
+    this.dice1 = document.getElementById('dice1');
+    this.dice2 = document.getElementById('dice2');
+    OgUtil.domSetPos(this.dice1, this.getPosObjTop(this.dice1X, this.diceY));
+    OgUtil.domSetPos(this.dice2, this.getPosObjTop(this.dice2X, this.diceY));
 
     //Chequer
     this.chequer = [];
@@ -173,7 +173,7 @@ class OtokogiBoard {
         const ellipse = checkersvg.firstElementChild;
         ellipse.setAttribute("ry", ry);
         ellipse.setAttribute("fill", checkercolor);
-        this.chequer[checkerid].dom.css(this.getPosObjTop(ex, ey));
+        OgUtil.domSetPos(this.chequer[checkerid].dom, this.getPosObjTop(ex, ey));
         this.chequer[checkerid].point = pt;
         checkerid += 1;
       }
@@ -200,13 +200,13 @@ class OtokogiBoard {
 
   animateDice(msec) {
     const diceanimclass = "faa-shake animated"; //ダイスを揺らすアニメーション
-    this.dice1.addClass(diceanimclass);
-    this.dice2.addClass(diceanimclass);
+    OgUtil.domAddClass(this.dice1, diceanimclass);
+    OgUtil.domAddClass(this.dice2, diceanimclass);
 
     const promise = new Promise(resolve => {
       setTimeout(() => { //msec秒待ってアニメーションを止める
-        this.dice1.removeClass(diceanimclass);
-        this.dice2.removeClass(diceanimclass);
+        OgUtil.domRemoveClass(this.dice1, diceanimclass);
+        OgUtil.domRemoveClass(this.dice2, diceanimclass);
         resolve();
       }, msec);
     });
@@ -215,14 +215,14 @@ class OtokogiBoard {
 
   bgBoardConfig() {
     //メインボードの大きさの定数を計算
-    const mainBoard = $('#board');
-    this.mainBoardWidth  = mainBoard.width();
-    this.mainBoardHeight = mainBoard.height();
+    const mainBoardRect = document.getElementById('board').getBoundingClientRect();
+    this.mainBoardWidth  = mainBoardRect.width;
+    this.mainBoardHeight = mainBoardRect.height;
 
     //サムネイルボードの大きさの定数を計算
-    const thumbBoard = $("#thumbboard0");
-    this.thumbBoardWidth  = thumbBoard.width();
-    this.thumbBoardHeight = thumbBoard.height();
+    const thumbBoardRect = document.getElementById("thumbboard0").getBoundingClientRect();
+    this.thumbBoardWidth  = thumbBoardRect.width;
+    this.thumbBoardHeight = thumbBoardRect.height;
 
     //ボードサイズ各種定数
     const ptnum = this.pointmax + 1;
@@ -287,14 +287,14 @@ class OtokogiBoard {
 
   flashOnMovablePoint(destpt) {
     for (const dp of destpt) {
-      if (dp == 0) { this.offtray.addClass("flash"); }
-      else { this.point[dp].addClass("flash"); }
+      if (dp == 0) { this.offtray.classList.add("flash"); }
+      else { this.point[dp].classList.add("flash"); }
     }
   }
 
   flashOffMovablePoint() {
-    this.pointAll.removeClass("flash");
-    this.offtray.removeClass("flash");
+    this.pointAll.forEach(el => el.classList.remove("flash"));
+    this.offtray.classList.remove("flash");
   }
 
   redraw(pointmax) {
@@ -303,18 +303,19 @@ class OtokogiBoard {
 
     //point triangles and offtray
     for (let p = 0; p <= this.pointmax; p++) {
-      this.point[p].show().css(this.getPosObjBottom(this.pointX[p], this.pointY));
+      OgUtil.domShow(this.point[p]);
+      OgUtil.domSetPos(this.point[p], this.getPosObjBottom(this.pointX[p], this.pointY));
       const domid = "pt" + p;
       const ptsvg = document.getElementById(domid);
       ptsvg.setAttribute("width", this.pointWidth);
     }
     for (let p = this.pointmax + 1; p <= 7; p++) {
-      this.point[p].hide();
+      OgUtil.domHide(this.point[p]);
     }
 
     //dice
-    this.dice1.css(this.getPosObjTop(this.dice1X, this.diceY));
-    this.dice2.css(this.getPosObjTop(this.dice2X, this.diceY));
+    OgUtil.domSetPos(this.dice1, this.getPosObjTop(this.dice1X, this.diceY));
+    OgUtil.domSetPos(this.dice2, this.getPosObjTop(this.dice2X, this.diceY));
 
     //checker
     for (let n = 0; n < 4; n++) {

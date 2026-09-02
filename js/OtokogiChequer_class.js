@@ -8,12 +8,12 @@ class Chequer {
     const divelem = document.getElementById(this._domid);
     divelem.innerHTML = this.checkersvg();
     this.setSvgWidth(width);
-    this._dom = $("#" + this._domid);
+    this._dom = document.getElementById(this._domid);
     this._point = 0;
   }
 
   //setter method
-  set dom(x)      { this._dom = $("#" + this._domid); } //argument x is dummy
+  set dom(x)      { this._dom = document.getElementById(this._domid); } //argument x is dummy
   set point(x)    { this._point = x; }
   set width(x)    { this.setSvgWidth(x); }
 

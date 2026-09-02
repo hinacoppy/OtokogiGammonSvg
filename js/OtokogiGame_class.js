@@ -19,7 +19,7 @@ class OtokogiGammon {
     this.outerDragFlag = false; //駒でない部分をタップしてドラッグを始めたら true
     if (this.playernum == 0) { //プレーヤ数が未定義で起動されたとき
       this.setButtonEnabled(this.cancelbtn, false);
-      this.settings.css(this.calcDrawPosition('S', this.settings)); //設定画面の位置決め
+      OgUtil.domSetPos(this.settings, this.calcDrawPosition('S', this.settings)); //設定画面の位置決め
       this.showSettingPanelAction();
     } else {
       this.initGameOption();
@@ -29,52 +29,58 @@ class OtokogiGammon {
 
   setDomNames() {
     //button
-    this.rollbtn     = $("#rollbtn");
-    this.donebtn     = $("#donebtn");
-    this.undobtn     = $("#undobtn");
-    this.applybtn    = $("#applybtn");
-    this.cancelbtn   = $("#cancelbtn");
-    this.settingbtn  = $("#settingbtn");
-    this.diceAsBtn   = $("#dice1,#dice2");
-    this.pointTriangle = $(".point");
+    this.rollbtn     = document.getElementById("rollbtn");
+    this.donebtn     = document.getElementById("donebtn");
+    this.undobtn     = document.getElementById("undobtn");
+    this.applybtn    = document.getElementById("applybtn");
+    this.cancelbtn   = document.getElementById("cancelbtn");
+    this.settingbtn  = document.getElementById("settingbtn");
+    this.diceAsBtn   = document.querySelectorAll("#dice1,#dice2");
+    this.pointTriangle = document.querySelectorAll(".point");
 
     //panel
-    this.container   = $("#container");
-    this.boardpanel  = $("#board");
-    this.doneundo    = $("#doneundo");
-    this.youwin      = $("#youwin");
-    this.settings    = $("#settings");
+    this.container   = document.getElementById("container");
+    this.boardpanel  = document.getElementById("board");
+    this.doneundo    = document.getElementById("doneundo");
+    this.youwin      = document.getElementById("youwin");
+    this.settings    = document.getElementById("settings");
 
     //chequer
-    this.chequerall  = $(".chequer");
+    this.chequerall  = document.querySelectorAll(".chequer");
   }
 
   setPanelPosition() {
-    this.rollbtn .css(this.calcDrawPosition('B', this.rollbtn));
-    this.doneundo.css(this.calcDrawPosition('B', this.doneundo));
-    this.youwin  .css(this.calcDrawPosition('B', this.youwin));
-    this.settings.css(this.calcDrawPosition('S', this.settings));
+    OgUtil.domSetPos(this.rollbtn,  this.calcDrawPosition('B', this.rollbtn));
+    OgUtil.domSetPos(this.doneundo, this.calcDrawPosition('B', this.doneundo));
+    OgUtil.domSetPos(this.youwin,   this.calcDrawPosition('B', this.youwin));
+    OgUtil.domSetPos(this.settings, this.calcDrawPosition('S', this.settings));
   }
 
   setEventHandler() {
-    const clickEventType = 'click touchstart'; //(( window.ontouchstart !== null ) ? 'click':'touchstart');
+    const clickEventTypes = ['click', 'touchstart']; //(( window.ontouchstart !== null ) ? 'click':'touchstart');
     //Button Click Event
-    this.rollbtn.       on(clickEventType, (e) => { e.preventDefault(); this.rollAction(); });
-    this.donebtn.       on(clickEventType, (e) => { e.preventDefault(); this.doneAction(); });
-    this.undobtn.       on(clickEventType, (e) => { e.preventDefault(); this.undoAction(); });
-    this.diceAsBtn.     on(clickEventType, (e) => { e.preventDefault(); this.doneAction(e); });
-    this.settingbtn.    on(clickEventType, (e) => { e.preventDefault(); this.showSettingPanelAction(); });
-    this.applybtn.      on(clickEventType, (e) => { e.preventDefault(); this.applySettingPanelAction(); });
-    this.cancelbtn.     on(clickEventType, (e) => { e.preventDefault(); this.cancelSettingPanelAction(); });
-    this.pointTriangle. on('touchstart mousedown', (e) => { e.preventDefault(); this.pointTouchStartAction(e); });
-    $(window).          on('resize',       (e) => { e.preventDefault(); this.delaydraw(); }); 
+    for (const evtype of clickEventTypes) {
+      this.rollbtn.    addEventListener(evtype, (e) => { e.preventDefault(); this.rollAction(); });
+      this.donebtn.    addEventListener(evtype, (e) => { e.preventDefault(); this.doneAction(); });
+      this.undobtn.    addEventListener(evtype, (e) => { e.preventDefault(); this.undoAction(); });
+      this.settingbtn. addEventListener(evtype, (e) => { e.preventDefault(); this.showSettingPanelAction(); });
+      this.applybtn.   addEventListener(evtype, (e) => { e.preventDefault(); this.applySettingPanelAction(); });
+      this.cancelbtn.  addEventListener(evtype, (e) => { e.preventDefault(); this.cancelSettingPanelAction(); });
+      this.diceAsBtn.forEach(el => el.addEventListener(evtype, (e) => { e.preventDefault(); this.doneAction(e); }));
+    }
+    for (const evtype of ['touchstart', 'mousedown']) {
+      this.pointTriangle.forEach(el => el.addEventListener(evtype, (e) => { e.preventDefault(); this.pointTouchStartAction(e); }));
+    }
+    window.addEventListener('resize', (e) => { e.preventDefault(); this.delaydraw(); });
   }
 
   initGameOption() {
     if (this.playernum <= 4) {
-      this.container.removeClass("container8").addClass("container4");
+      this.container.classList.remove("container8");
+      this.container.classList.add("container4");
     } else {
-      this.container.removeClass("container4").addClass("container8");
+      this.container.classList.remove("container4");
+      this.container.classList.add("container8");
     }
 
     this.player = 0;
@@ -82,7 +88,7 @@ class OtokogiGammon {
     this.board.shuffleColor(); //色をシャッフル
     for (let player = 0; player < 8; player++) {
       this.otokogiID[player] = "OGID=" + "-".repeat(this.pointmax) + "D:00:" + player;
-      $("#thumbboard" + player).toggle(player < this.playernum); //toggle=show/hide
+      OgUtil.domToggle(document.getElementById("thumbboard" + player), player < this.playernum); //toggle=show/hide
     }
     this.redraw();
   }
@@ -94,7 +100,7 @@ class OtokogiGammon {
     this.swapChequerDraggable(false);
     this.clearCurrPosition();
     this.hideAllPanel();
-    this.rollbtn.show();
+    OgUtil.domShow(this.rollbtn);
     this.gamefinished = false;
   }
 
@@ -106,7 +112,7 @@ class OtokogiGammon {
     this.setButtonEnabled(this.donebtn, false);
     this.setCurrPosition(this.ogid);
     this.hideAllPanel();
-    this.doneundo.show();
+    OgUtil.domShow(this.doneundo);
   }
 
   undoAction() {
@@ -137,15 +143,15 @@ class OtokogiGammon {
     this.gamefinished = true;
 
     const animClass = "faa-tada animated";
-    this.youwin.show().addClass(animClass);
+    OgUtil.domShow(this.youwin);
+    OgUtil.domAddClass(this.youwin, animClass);
 
-    const defer = $.Deferred(); //deferオブジェクトからpromiseを作る
-    setTimeout(() => { //待ってアニメーションを止める
-      this.youwin.removeClass(animClass);
-      defer.resolve();
-    }, this.animDelay2);
-
-    return defer.promise();
+    return new Promise(resolve => {
+      setTimeout(() => { //待ってアニメーションを止める
+        OgUtil.domRemoveClass(this.youwin, animClass);
+        resolve();
+      }, this.animDelay2);
+    });
   }
 
   nextPlayer() {
@@ -153,33 +159,33 @@ class OtokogiGammon {
   }
 
   hideAllPanel() {
-    this.rollbtn.hide();
-    this.doneundo.hide();
-    this.youwin.hide();
+    OgUtil.domHide(this.rollbtn);
+    OgUtil.domHide(this.doneundo);
+    OgUtil.domHide(this.youwin);
   }
 
   showSettingPanelAction() {
-    this.settings.slideDown(); //設定画面を表示
+    OgUtil.domSlideDown(this.settings); //設定画面を表示
     this.setButtonEnabled(this.settingbtn, false);
   }
 
   applySettingPanelAction() {
-    this.settings.slideUp(); //設定画面を消す
+    OgUtil.domSlideUp(this.settings); //設定画面を消す
     this.setButtonEnabled(this.cancelbtn, true);
     this.setButtonEnabled(this.settingbtn, true);
-    this.playernum = parseInt($("#players").val());
-    this.pointmax = parseInt($("#points").val());
+    this.playernum = parseInt(document.getElementById("players").value);
+    this.pointmax = parseInt(document.getElementById("points").value);
     this.initGameOption();
     this.beginNewGame();
   }
 
   cancelSettingPanelAction() {
-    this.settings.slideUp(); //設定画面を消す
+    OgUtil.domSlideUp(this.settings); //設定画面を消す
     this.setButtonEnabled(this.settingbtn, true);
   }
 
   setButtonEnabled(button, enable) {
-    button.prop("disabled", !enable);
+    button.disabled = !enable;
   }
 
   randomdice() {
@@ -200,10 +206,10 @@ class OtokogiGammon {
   }
 
   calcDrawPosition(pos, elem) {
-    const p_width = (pos == 'B') ? this.boardpanel.width() : this.container.width();
-    const p_height = (pos == 'B') ? this.boardpanel.height() : this.container.height();
-    const wx = (p_width - elem.outerWidth(true)) / 2;
-    const wy = (p_height - elem.outerHeight(true)) / 2;
+    const panel = (pos == 'B') ? this.boardpanel : this.container;
+    const p_rect = panel.getBoundingClientRect();
+    const wx = (p_rect.width  - OgUtil.domOuterWidth(elem, true)) / 2;
+    const wy = (p_rect.height - OgUtil.domOuterHeight(elem, true)) / 2;
     return {left:wx, top:wy};
   }
 
@@ -229,7 +235,7 @@ class OtokogiGammon {
   }
 
   delaydraw() {
-    setTimeout(() => { //resizeイベントの時は$(window).height()が正しい値を返せるように少し待つ
+    setTimeout(() => { //resizeイベントの時はgetBoundingClientRect()が正しい値を返せるように少し待つ
       this.redraw();
     }, 100);
   }
@@ -250,8 +256,6 @@ class OtokogiGammon {
     var y;
     var dragobj; //ドラッグ中のオブジェクト
     var zidx; //ドラッグ中のオブジェクトのzIndexを保持
-
-    //この関数内の処理は、パフォーマンスのため jQuery Free で記述
 
     //ドラッグ開始時のコールバック関数
     const evfn_dragstart = ((origevt) => {
@@ -326,7 +330,7 @@ class OtokogiGammon {
   }
 
   dragStartAction(event, position) {
-    this.dragObject = $(event.currentTarget); //dragStopAction()で使うがここで取り出しておかなければならない
+    this.dragObject = event.currentTarget; //dragStopAction()で使うがここで取り出しておかなければならない
     const id = event.currentTarget.id;
     this.dragStartPt = this.board.getDragStartPoint(id);
     if (!this.outerDragFlag) { this.dragStartPos = position; }
@@ -398,7 +402,7 @@ class OtokogiGammon {
       this.board.showBoard(this.ogid);
       this.showThumbBoard(this.ogid, this.player, true);
     } else {
-      this.dragObject.animate(this.dragStartPos, 300); //元の位置に戻す
+      OgUtil.domAnimatePos(this.dragObject, this.dragStartPos, 300); //元の位置に戻す
     }
     this.swapChequerDraggable(true);
     this.setButtonEnabled(this.donebtn, this.ogid.moveFinished()); //動かし終わるとDoneボタンを押せる
@@ -408,12 +412,12 @@ class OtokogiGammon {
   }
 
   swapChequerDraggable(enable) {
-    this.chequerall.removeClass("draggable");
+    this.chequerall.forEach(el => el.classList.remove("draggable"));
     if (!enable) { return; }
     for (let n = 0; n < 4; n++) {
       const pt = this.board.chequer[n].point;
       if (pt == 0) { continue; }
-      this.board.chequer[n].dom.addClass("draggable");
+      this.board.chequer[n].dom.classList.add("draggable");
     }
   }
 
@@ -435,26 +439,26 @@ class OtokogiGammon {
 
     if (chker) { //chker may be undefined
       const chkerdom = chker.dom;
-      if (chkerdom.hasClass("draggable")) {
+      if (chkerdom.classList.contains("draggable")) {
         this.outerDragFlag = true;
-        this.dragStartPos = {left: chkerdom[0].style.left,
-                             top:  chkerdom[0].style.top };
+        this.dragStartPos = {left: chkerdom.style.left,
+                             top:  chkerdom.style.top };
         const offset = this.board.pieceWidth / 2; //チェッカーの真ん中をつかむ
-        chkerdom.css({left: event.clientX - offset,
-                      top:  event.clientY - offset});
+        OgUtil.domSetPos(chkerdom, {left: event.clientX - offset,
+                             top:  event.clientY - offset});
         let delegateEvent;
         if (evttypeflg) {
           delegateEvent = new MouseEvent("mousedown", {clientX:event.clientX, clientY:event.clientY});
         } else {
           const touchobj = new Touch({identifier: 12345,
-                                      target: chkerdom[0],
+                                      target: chkerdom,
                                       clientX: event.clientX,
                                       clientY: event.clientY,
                                       pageX: event.pageX,
                                       pageY: event.pageY});
           delegateEvent = new TouchEvent("touchstart", {changedTouches:[touchobj]});
         }
-        chkerdom[0].dispatchEvent(delegateEvent);
+        chkerdom.dispatchEvent(delegateEvent);
       }
     }
   }
