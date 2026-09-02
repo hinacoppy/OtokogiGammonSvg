@@ -49,32 +49,48 @@ class OgUtil {
   static domAddClass(el, classNames)    { el.classList.add(...classNames.split(" ")); }
   static domRemoveClass(el, classNames) { el.classList.remove(...classNames.split(" ")); }
 
+  //CSSのtransition+rAFはページ読み込み直後など未描画の状態だとrAFの発火タイミング次第で
+  //アニメーションせず即座に最終状態へ飛んでしまうことがあるため、Web Animations APIで
+  //開始状態と終了状態を1回のアニメーションとして確実に実行する
   static domSlideDown(el, duration = 300) { //jQueryの.slideDown()相当
+    el.getAnimations().forEach(a => a.cancel()); //連打などで前のslide中アニメーションが残っていたら止める
     OgUtil.domShow(el);
-    const height = el.scrollHeight;
+    //offsetHeightはbox-sizingに関係なく実際の描画高さ(content+padding+border)を返すため、
+    //アニメーション中だけbox-sizing:border-boxにしてheight指定値とズレないようにする
+    //(content-boxのままだとscrollHeight(=content+padding)をheightに指定してしまい、
+    //paddingの分だけ実際より大きくなり、終了時にheightを解除すると其の分縮んで見える)
+    const height = el.offsetHeight;
+    const prevBoxSizing = el.style.boxSizing;
+    el.style.boxSizing = "border-box";
     el.style.overflow = "hidden";
     el.style.height = "0px";
-    el.style.transition = `height ${duration}ms`;
-    requestAnimationFrame(() => { el.style.height = height + "px"; });
-    setTimeout(() => {
+    //fill:"forwards"で終了後も最終値を保持させ、onfinish内でcancel()してから
+    //スタイルを確定することで、アニメーション終了時に開始前の値へ一瞬戻る
+    //チラつきが起きないようにする
+    const anim = el.animate([{ height: "0px" }, { height: height + "px" }], { duration, fill: "forwards" });
+    anim.onfinish = () => {
+      anim.cancel();
       el.style.height = "";
       el.style.overflow = "";
-      el.style.transition = "";
-    }, duration);
+      el.style.boxSizing = prevBoxSizing;
+    };
   }
 
   static domSlideUp(el, duration = 300) { //jQueryの.slideUp()相当
-    const height = el.scrollHeight;
+    el.getAnimations().forEach(a => a.cancel()); //連打などで前のslide中アニメーションが残っていたら止める
+    const height = el.offsetHeight;
+    const prevBoxSizing = el.style.boxSizing;
+    el.style.boxSizing = "border-box";
     el.style.overflow = "hidden";
     el.style.height = height + "px";
-    el.style.transition = `height ${duration}ms`;
-    requestAnimationFrame(() => { el.style.height = "0px"; });
-    setTimeout(() => {
+    const anim = el.animate([{ height: height + "px" }, { height: "0px" }], { duration, fill: "forwards" });
+    anim.onfinish = () => {
+      anim.cancel();
       OgUtil.domHide(el);
       el.style.height = "";
       el.style.overflow = "";
-      el.style.transition = "";
-    }, duration);
+      el.style.boxSizing = prevBoxSizing;
+    };
   }
 
   static domAnimatePos(el, pos, duration = 300) { //jQueryの.animate({left,top}, duration)相当
